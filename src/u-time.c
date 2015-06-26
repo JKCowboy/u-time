@@ -2,7 +2,7 @@
 
 #define TEST_DRIVER true
 #define GColorForPBLColor (GColor8){ .argb = 0b11001100 }
-
+#define KEYSTROKE_DELAY_MS 150
   
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -34,7 +34,7 @@ static void type_cmd_date(){
   APP_LOG(APP_LOG_LEVEL_DEBUG,"%s%i", "type_cmd_date, called with type_count_date=",type_count_date);
 
   if(type_count_date==1){
-    add_text(">d");
+    add_text("d");
   } else if(type_count_date==2){
     add_text("a"); 
   } else if(type_count_date==3){
@@ -56,12 +56,12 @@ static void type_cmd_date(){
     }
     add_text("\n");
     add_text(time_buffer);
-    add_text("\n>");
+    add_text("\n_");
     type_count_date=0;
   }
   
   if(type_count_date!=0){
-    app_timer_register(200, type_cmd_date, NULL);
+    app_timer_register(KEYSTROKE_DELAY_MS, type_cmd_date, NULL);
   }
 
 }
@@ -84,11 +84,11 @@ static void type_cmd_clear(){
   } else{
     clear_text_layer();
     type_count_clear=0;
-     app_timer_register(200, type_cmd_date, NULL);
+     app_timer_register(KEYSTROKE_DELAY_MS, type_cmd_date, NULL);
   }
   
   if(type_count_clear!=0){
-    app_timer_register(200, type_cmd_clear, NULL);
+    app_timer_register(KEYSTROKE_DELAY_MS, type_cmd_clear, NULL);
   }
 
 }
@@ -97,33 +97,11 @@ static void type_cmd_clear(){
 
 
 static void update_time() {
-  // Get a tm structure
-  // time_t temp = time(NULL); 
-  // struct tm *tick_time = localtime(&temp);
 
-  // // Create a long-lived buffer
-  // static char time_buffer[] = "00:00";
-
-  // // Write the current hours and minutes into the time_buffer
-  // if(clock_is_24h_style() == true) {
-  //   //Use 2h hour format
-  //   strftime(time_buffer, sizeof("00:00"), "%H:%M", tick_time);
-  // } else {
-  //   //Use 12 hour format
-  //   strftime(time_buffer, sizeof("00:00"), "%I:%M", tick_time);
-  // }
 
   
   type_cmd_clear();
-  // add_text("clear");
-  // psleep(500);
-  // clear_text_layer();
-  // add_text("");
-  // psleep(50);
-  // add_text("date\n");
-  // add_text(time_buffer);
-  // if(tick_time->tm_sec % 2 == 0)
-  //   add_text("\n");
+
 
 }
 
@@ -159,12 +137,24 @@ static void main_window_unload(Window *window) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
-  #if TEST_DRIVER
-   if(tick_time->tm_sec % 5 == 0)
+  // #if TEST_DRIVER
+   if(tick_time->tm_sec == 0){
+     APP_LOG(APP_LOG_LEVEL_DEBUG,"tick_handler, update for second=%i",tick_time->tm_sec);
      update_time();
-  #else
-    update_time(); 
-  #endif
+   }else{
+    if(tick_time->tm_sec % 2 == 0){
+      APP_LOG(APP_LOG_LEVEL_DEBUG,"tick_handler, blink cursor off for second=%i",tick_time->tm_sec);
+      window_text[11] = ' ';
+    }else{
+      APP_LOG(APP_LOG_LEVEL_DEBUG,"tick_handler, blink cursor on for second=%i",tick_time->tm_sec);
+      window_text[11] = '_';
+   }
+   update_text_layer();
+  }
+  // #else
+  //   // update_time(); 
+  //    APP_LOG(APP_LOG_LEVEL_DEBUG,"tick_handler, only blink cursor for second%i",tick_time->tm_sec);
+  // #endif
 
   
 }

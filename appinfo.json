@@ -1,8 +1,8 @@
 {
   "uuid": "32449dee-0325-413d-861d-3d080188ce55",
   "shortName": "u-time",
-  "longName": "u-time",
-  "companyName": "MakeAwesomeHappen",
+  "longName": "Unix Time",
+  "companyName": "Rubicon Technology",
   "versionLabel": "1.0",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],

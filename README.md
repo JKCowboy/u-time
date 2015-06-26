@@ -1,8 +1,8 @@
 # u-time
 
-![screenshot](icon_144.png)
+![screenshot](icon_144.gif)
 ## Description
-UTime (u-time) is a Pebble watchface that displays time as if commands were typed from the unix console. Others have created similar watchfaces but this one adds a little more console realism (blinking cursor) and the commands "type out" the time change. Console letters are in green on color Pebble watches. 
+UTime (u-time) is a Pebble watchface that displays time as if commands were typed from the unix console. Others have created similar watchfaces but this one adds a little more console realism (blinking cursor) and the commands "type out" the time change. Console letters are in green on color Pebble watches. Font sizes are larger than other implementations to make using it as a real watch easier.
 
 ##Design
 Uses a TextLayer to display unix commands. Should work on original Pebble and newer color Pebble Time watches.

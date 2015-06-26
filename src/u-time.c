@@ -1,35 +1,130 @@
 #include <pebble.h>
+
+#define TEST_DRIVER true
+#define GColorForPBLColor (GColor8){ .argb = 0b11001100 }
+
   
 static Window *s_main_window;
 static TextLayer *s_time_layer;
+static char window_text[30];
+static int type_count_clear = 0;
+static int type_count_date = 0;
 
-#define GColorForPBLColor (GColor8){ .argb = 0b11001100 }
+
+
+static void update_text_layer(){
+  text_layer_set_text(s_time_layer, window_text);
+}
+
+
+static void clear_text_layer(){
+  strcpy(window_text,"");
+  update_text_layer();
+}
+
+
+static void add_text(char* text_append){
+  strcat(window_text,text_append);
+  update_text_layer();
+}
+
+
+static void type_cmd_date(){
+  type_count_date++;
+  APP_LOG(APP_LOG_LEVEL_DEBUG,"%s%i", "type_cmd_date, called with type_count_date=",type_count_date);
+
+  if(type_count_date==1){
+    add_text(">d");
+  } else if(type_count_date==2){
+    add_text("a"); 
+  } else if(type_count_date==3){
+    add_text("t");   
+  } else if(type_count_date==4){
+    add_text("e");    
+  } else{
+    time_t temp = time(NULL); 
+    struct tm *tick_time = localtime(&temp);
+    static char time_buffer[] = "00:00";
+  
+    // Write the current hours and minutes into the time_buffer
+    if(clock_is_24h_style() == true) {
+      //Use 2h hour format
+      strftime(time_buffer, sizeof("00:00"), "%H:%M", tick_time);
+    } else {
+      //Use 12 hour format
+      strftime(time_buffer, sizeof("00:00"), "%I:%M", tick_time);
+    }
+    add_text("\n");
+    add_text(time_buffer);
+    add_text("\n>");
+    type_count_date=0;
+  }
+  
+  if(type_count_date!=0){
+    app_timer_register(200, type_cmd_date, NULL);
+  }
+
+}
+
+
+
+static void type_cmd_clear(){
+  type_count_clear++;
+  APP_LOG(APP_LOG_LEVEL_DEBUG,"type_cmd_clear, called with type_count_clear=%i, window_text=%s",type_count_clear,window_text);
+  if(type_count_clear==1){
+    add_text("c");
+  } else if(type_count_clear==2){
+    add_text("l");    
+  } else if(type_count_clear==3){
+    add_text("e");  
+  } else if(type_count_clear==4){
+    add_text("a");  
+  } else if(type_count_clear==5){
+    add_text("r");      
+  } else{
+    clear_text_layer();
+    type_count_clear=0;
+     app_timer_register(200, type_cmd_date, NULL);
+  }
+  
+  if(type_count_clear!=0){
+    app_timer_register(200, type_cmd_clear, NULL);
+  }
+
+}
+
+
+
 
 static void update_time() {
   // Get a tm structure
-  time_t temp = time(NULL); 
-  struct tm *tick_time = localtime(&temp);
+  // time_t temp = time(NULL); 
+  // struct tm *tick_time = localtime(&temp);
 
-  // Create a long-lived buffer
-  static char time_buffer[] = "00:00";
+  // // Create a long-lived buffer
+  // static char time_buffer[] = "00:00";
 
-  // Write the current hours and minutes into the time_buffer
-  if(clock_is_24h_style() == true) {
-    //Use 2h hour format
-    strftime(time_buffer, sizeof("00:00"), "%H:%M", tick_time);
-  } else {
-    //Use 12 hour format
-    strftime(time_buffer, sizeof("00:00"), "%I:%M", tick_time);
-  }
+  // // Write the current hours and minutes into the time_buffer
+  // if(clock_is_24h_style() == true) {
+  //   //Use 2h hour format
+  //   strftime(time_buffer, sizeof("00:00"), "%H:%M", tick_time);
+  // } else {
+  //   //Use 12 hour format
+  //   strftime(time_buffer, sizeof("00:00"), "%I:%M", tick_time);
+  // }
 
-  // strcat(time_buffer,"\n#");
-  static char str[20] = "#date ";
-  strcpy(str,"#date\n");
-  strcat(str,time_buffer);
-  strcat(str,"\n#");
+  
+  type_cmd_clear();
+  // add_text("clear");
+  // psleep(500);
+  // clear_text_layer();
+  // add_text("");
+  // psleep(50);
+  // add_text("date\n");
+  // add_text(time_buffer);
+  // if(tick_time->tm_sec % 2 == 0)
+  //   add_text("\n");
 
-  // Display this time on the TextLayer
-  text_layer_set_text(s_time_layer, str);
 }
 
 static void main_window_load(Window *window) {
@@ -63,7 +158,15 @@ static void main_window_unload(Window *window) {
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time();
+
+  #if TEST_DRIVER
+   if(tick_time->tm_sec % 5 == 0)
+     update_time();
+  #else
+    update_time(); 
+  #endif
+
+  
 }
   
 static void init() {
@@ -83,7 +186,8 @@ static void init() {
   window_stack_push(s_main_window, true);
   
   // Register with TickTimerService
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  // tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 }
 
 static void deinit() {
